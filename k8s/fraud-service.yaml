@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-service
+  labels:
+    app: fraud-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fraud-service
+  template:
+    metadata:
+      name: fraud-service
+      labels:
+        app: fraud-service
+    spec:
+      containers:
+        - name: fraud-service
+          image: daneker/spring-k8s-fraud-service
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: 'server.port'
+              value: '8080'
+      restartPolicy: Always
+      

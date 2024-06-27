@@ -17,6 +17,8 @@ try {
     exit 1
 }
 
+./mvnw clean install -DskipTests
+
 # Define the image name
 $imageName = "daneker/spring-k8s-$FolderName"
 
@@ -47,3 +49,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Output "Docker image $imageName built and pushed successfully."
+Set-Location -Path ..
