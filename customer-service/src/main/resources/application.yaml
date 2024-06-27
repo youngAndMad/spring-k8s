@@ -1,0 +1,25 @@
+spring:
+  cloud:
+    openfeign:
+      client:
+        config:
+          fraud-client:
+            url: http://localhost:8082
+  sql:
+    init:
+      mode: always
+  application:
+    name: customer-service
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/customer_service
+    username: postgres
+    password: postgres
+server:
+  port: 8081
+  error:
+    include-message: always
