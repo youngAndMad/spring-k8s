@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fraud-app
+  name: api-gateway-app
   labels:
-    app: fraud-app
+    app: api-gateway-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fraud-app
+      app: api-gateway-app
   template:
     metadata:
-      name: fraud-app
+      name: api-gateway-app
       labels:
-        app: fraud-app
+        app: api-gateway-app
     spec:
       containers:
-        - name: fraud-app
-          image: daneker/spring-k8s-fraud-service
+        - name: api-gateway-app
+          image: daneker/spring-k8s-api-gateway
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -25,6 +25,10 @@ spec:
           env:
             - name: 'server.port'
               value: '8080'
+            - name: CUSTOMER_SERVICE_URI
+              value: 'lb://customer-app'
+            - name: FRAUD_SERVICE_URI
+              value: 'lb://fraud-app'
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -51,12 +55,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fraud-app
+  name: api-gateway-app
 spec:
   selector:
-    app: fraud-app
+    app: api-gateway-app
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
-  type: ClusterIP
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  name: api-gateway-ingress
+spec:
+  rules:
+    - host: api-gateway.danekerscode.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-app
+                port:
+                  number: 8080

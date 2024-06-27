@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-app
+  labels:
+    app: customer-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer-app
+  template:
+    metadata:
+      name: customer-app
+      labels:
+        app: customer-app
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: customer-app
+          image: daneker/spring-k8s-customer-service
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: 'server.port'
+              value: '8080'
+            - name: 'spring.datasource.url'
+              value: 'jdbc:postgresql://postgres:5432/customer_service'
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            failureThreshold: 10
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-app
+spec:
+    selector:
+        app: customer-app
+    ports:
+      - protocol: TCP
+        port: 8080
+        targetPort: 8080
+    type: ClusterIP
